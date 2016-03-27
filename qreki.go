@@ -19,33 +19,71 @@ const (
 	Butsumetsu
 )
 
+var rokuyouNames = [...]string{
+	"大安",
+	"赤口",
+	"先勝",
+	"友引",
+	"先負",
+	"仏滅",
+}
+
 func (r Rokuyou) String() string {
-	switch r {
-	case 0:
-		return "大安"
-	case 1:
-		return "赤口"
-	case 2:
-		return "先勝"
-	case 3:
-		return "友引"
-	case 4:
-		return "先負"
-	case 5:
-		return "仏滅"
+	if 0 <= r && int(r) < len(rokuyouNames) {
+		return rokuyouNames[r]
+	}
+	return ""
+}
+
+type Month int
+
+const (
+	Mutsuki Month = 1 + iota
+	Kisaragi
+	Yayoi
+	Uzuki
+	Satsuki
+	Minazuki
+	Humizuki
+	Hazuki
+	Nagatsuki
+	Kannazuki
+	Shimotsuki
+	Shiwasu
+)
+
+var monthNames = [...]string{
+	"",
+	"睦月",
+	"如月",
+	"弥生",
+	"卯月",
+	"皐月",
+	"水無月",
+	"文月",
+	"葉月",
+	"長月",
+	"神無月",
+	"霜月",
+	"師走",
+}
+
+func (m Month) String() string {
+	if 0 <= m && int(m) < len(monthNames) {
+		return monthNames[m]
 	}
 	return ""
 }
 
 type Qreki struct {
 	Year      int
-	Month     int
+	Month     Month
 	Day       int
 	LeapMonth bool
 }
 
 func (q Qreki) Rokuyou() Rokuyou {
-	return Rokuyou((q.Month + q.Day) % 6)
+	return Rokuyou((int(q.Month) + q.Day) % 6)
 }
 
 func (q Qreki) String() string {
@@ -96,7 +134,7 @@ func NewQreki(now time.Time) Qreki {
 			if firstDays[i+1].d.After(now) {
 				return Qreki{
 					Year:      y,
-					Month:     m,
+					Month:     Month(m),
 					Day:       int(now.Sub(firstDays[i].d)/(24*time.Hour)) + 1,
 					LeapMonth: leapMonth,
 				}
@@ -112,7 +150,7 @@ func NewQreki(now time.Time) Qreki {
 			if firstDays[i+1].d.After(now) {
 				return Qreki{
 					Year:      y,
-					Month:     (i+10)%12 + 1,
+					Month:     Month((i+10)%12 + 1),
 					Day:       int(now.Sub(firstDays[i].d)/(24*time.Hour)) + 1,
 					LeapMonth: false,
 				}
