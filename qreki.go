@@ -38,6 +38,7 @@ func (r Rokuyou) String() string {
 }
 
 type Qreki struct {
+	Year      int
 	Month     int
 	Day       int
 	LeapMonth bool
@@ -52,7 +53,7 @@ func (q Qreki) String() string {
 	if q.LeapMonth {
 		leapMonth = "閏"
 	}
-	return fmt.Sprintf("%s%d月%d日", leapMonth, q.Month, q.Day)
+	return fmt.Sprintf("%d年%s%d月%d日", q.Year, leapMonth, q.Month, q.Day)
 }
 
 // 旧暦の各月の朔日を表す
@@ -64,6 +65,7 @@ type firstDay struct {
 func NewQreki(now time.Time) Qreki {
 	// 直近の旧暦11月1日(直近の冬至の直近の朔)を求める
 	t := PreviousSaku(PreviousTouji(now))
+	year := t.Year()
 
 	// 旧暦11月1日から各月の朔日を求める
 	firstDays := [14]firstDay{}
@@ -74,6 +76,7 @@ func NewQreki(now time.Time) Qreki {
 
 	if firstDays[13].sunLongitude < 270 {
 		// 閏月が存在する
+		y := year
 		m := 10
 		leapFlag := false
 		for i := 0; i < 13; i++ {
@@ -86,11 +89,13 @@ func NewQreki(now time.Time) Qreki {
 				m++
 				if m > 12 {
 					m = 1
+					y += 1
 				}
 			}
 
 			if firstDays[i+1].d.After(now) {
 				return Qreki{
+					Year:      y,
 					Month:     m,
 					Day:       int(now.Sub(firstDays[i].d)/(24*time.Hour)) + 1,
 					LeapMonth: leapMonth,
@@ -100,8 +105,13 @@ func NewQreki(now time.Time) Qreki {
 	} else {
 		// 閏月は存在しない
 		for i := 0; i < 13; i++ {
+			y := year
+			if i >= 2 {
+				y += 1
+			}
 			if firstDays[i+1].d.After(now) {
 				return Qreki{
+					Year:      y,
 					Month:     (i+10)%12 + 1,
 					Day:       int(now.Sub(firstDays[i].d)/(24*time.Hour)) + 1,
 					LeapMonth: false,
